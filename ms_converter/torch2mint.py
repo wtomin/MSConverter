@@ -103,6 +103,7 @@ def _torch2mint(
     mint_api_path: Optional[str] = None,
     custom_mapping_path: Optional[str] = None,
     inplace: bool = False,
+    extra_conversion: bool = False
 ) -> None:
     input_ = os.path.abspath(input_)
     api = scan_mint_api(ms_version=ms_version, mint_api_path=mint_api_path)
@@ -113,8 +114,9 @@ def _torch2mint(
     with open(input_, "r") as f:
         content = f.read()
     content = replace_device_code(content)
-    content = remove_extra_code(content)
     content = replace_param_code(content)
+    if extra_conversion:
+        content = remove_extra_code(content)
 
     for u, v in mapping.items():
         if u not in content:
@@ -162,6 +164,10 @@ def main():
                         "--verbose",
                         action="store_true",
                         help="Shown the debug message")
+    parser.add_argument("-e",
+                        "--extra_conversion",
+                        action="store_true",
+                        help="run extra conversion with ast parse")
     args = parser.parse_args()
 
     # set logger
@@ -180,6 +186,7 @@ def main():
         mint_api_path=args.mint_api_path,
         custom_mapping_path=args.custom_mapping_path,
         inplace=args.in_place,
+        extra_conversion=args.extra_conversion
     )
 
 
