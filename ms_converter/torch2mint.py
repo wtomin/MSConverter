@@ -9,7 +9,7 @@ import sys
 from typing import Dict, List, Optional
 
 from ms_converter._version import __version__
-
+from .device_code import remove_device_code
 MINT_API_TABLE = {
     "2.5.0": "mindspore_v2.5.0.mint.rst",
     "2.6.0": "mindspore_v2.6.0.mint.rst"
@@ -110,16 +110,7 @@ def _torch2mint(
     _logger.debug("Reading input from %s", input_)
     with open(input_, "r") as f:
         content = f.read()
-
-    device_patterns = [
-        r'\.to\((?:device\s*[^\)]+|[a-zA-Z_][a-zA-Z0-9_]*\.device)\)', # .to(device) or .to(device=...)
-        r',\s*device\s*=\s*[a-zA-Z_][a-zA-Z0-9_]*\.device', # , device=x.device 
-        r'cuda\(\s*[^\)]*\)',
-        r'cpu\(\s*[^\)]*\)',
-        r'\.detach\(\s*\)' 
-    ]
-    for pattern in device_patterns:
-        content = re.sub(pattern, '', content)
+    content = remove_device_code(content)
 
     for u, v in mapping.items():
         if u not in content:
