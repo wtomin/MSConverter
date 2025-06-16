@@ -1,5 +1,13 @@
 import re
 
+torch2ms_mapping = {
+    ".named_children()": ".name_cells().items()",
+    ".parameters()": ".get_parameters()",
+    "@torch.no_grad()": "",
+    ".size()": ".shape",
+    ".numpy()": ".asnumpy()"
+
+}
 def convert_init_code(pytorch_code: str) -> str:
     # 1. Handle special initialization with indices (including fill_ with arguments)
     # module.weight.data[idx].fill_(1) -> module.weight.data[idx] = 1
@@ -49,6 +57,10 @@ def replace_param_code(code: str) -> str:
     replacement = r'\1.requires_grad = \2'
     code = re.sub(pattern, replacement, code)
     code = convert_init_code(code)
+
+    for p_name in torch2ms_mapping.keys():
+        ms_name = torch2ms_mapping[p_name]
+        code = code.replace(p_name, ms_name)
     
     code = re.sub(r'\(\s*,\s*', '(', code)
     code = re.sub(r',\s*,', ',', code)
@@ -65,6 +77,7 @@ if __name__=="__main__":
     x.requires_grad_(False)
 ''',
 '''
+@torch.no_grad()
 def _init_weights(self, module):
     """Initialize the weights"""
     if isinstance(module, nn.Linear):

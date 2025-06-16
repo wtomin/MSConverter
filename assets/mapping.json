@@ -26,8 +26,5 @@
     "def forward": "def construct",
     "self.forward": "self.construct",
     "import torch\n": "import mindspore as ms\nimport mindspore.mint as mint\n",
-    ".size()": ".shape",
-    ".numpy()": ".asnumpy()",
-    ".item()": ".asnumpy().item()",
     "torch.dtype": "ms.common.dtype"
 }
