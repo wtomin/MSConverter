@@ -9,7 +9,7 @@ import sys
 from typing import Dict, List, Optional
 
 from ms_converter._version import __version__
-from .device_code import remove_device_code
+from .device_code import replace_device_code
 MINT_API_TABLE = {
     "2.5.0": "mindspore_v2.5.0.mint.rst",
     "2.6.0": "mindspore_v2.6.0.mint.rst"
@@ -110,7 +110,7 @@ def _torch2mint(
     _logger.debug("Reading input from %s", input_)
     with open(input_, "r") as f:
         content = f.read()
-    content = remove_device_code(content)
+    content = replace_device_code(content)
 
     for u, v in mapping.items():
         if u not in content:

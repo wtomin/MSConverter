@@ -4,13 +4,8 @@ device_patterns = [
     r'device\s*=\s*[^,\)]+',      # device=xxx 
 ]
 
-def remove_device_code(code: str) -> str:
-    def replace_to_calls(match):
-        params = match.group(1).split(',')
-        filtered_params = [p.strip() for p in params if 'device' not in p]
-        if filtered_params:
-            return f".to({', '.join(filtered_params)})"
-        return '' 
+def replace_device_code(code: str) -> str:
+
     def replace_to_calls(match):
         # .to(device) or .to(x.device) replaced by empty string
         # .to(device, dtype) replaced by .to(dtype)
