@@ -1,0 +1,4 @@
+{
+    ".named_children()": ".name_cells().items()",
+    ".parameters()": ".get_parameters()"
+}

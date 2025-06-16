@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 from ms_converter._version import __version__
 from .device_code import replace_device_code
 from .extras import remove_extra_code
+from .param_code import replace_param_code
 MINT_API_TABLE = {
     "2.5.0": "mindspore_v2.5.0.mint.rst",
     "2.6.0": "mindspore_v2.6.0.mint.rst"
@@ -113,6 +114,7 @@ def _torch2mint(
         content = f.read()
     content = replace_device_code(content)
     content = remove_extra_code(content)
+    content = replace_param_code(content)
 
     for u, v in mapping.items():
         if u not in content:
@@ -149,7 +151,8 @@ def main():
                         action="store_true",
                         help="make the update to files in place")
     parser.add_argument("--mint-api-path", help="Path to the Mint API list")
-    parser.add_argument("--custom-mapping-path",
+    parser.add_argument("-c",
+                        "--custom-mapping-path",
                         help="Path to the custom mapping list")
     parser.add_argument("--ms-version",
                         choices=["2.5.0", "2.6.0"],
