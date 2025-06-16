@@ -1,7 +1,7 @@
 import re
 
 device_patterns = [
-    r'device\s*=\s*[^,\)]+',      # device=xxx 
+    r'device[ \t]*=[ \t]*[^,\)\n]+',    # device=xxx 
 ]
 
 def replace_device_code(code: str) -> str:
@@ -35,3 +35,25 @@ def replace_device_code(code: str) -> str:
     code = re.sub(r',\s*,', ',', code)
     
     return code
+
+if __name__=="__main__":
+    code = '''
+            if model_inputs["inputs_embeds"] is not None:
+                batch_size, sequence_length, _ = model_inputs["inputs_embeds"].shape
+                device = model_inputs["inputs_embeds"].device
+            else:
+                batch_size, sequence_length = model_inputs["input_ids"].shape
+                device = model_inputs["input_ids"].device
+
+            attention_mask = self.model._prepare_4d_causal_attention_mask_with_cache_position(
+                attention_mask,
+                sequence_length=sequence_length,
+                target_length=past_key_values.get_max_cache_shape(),
+                dtype=self.lm_head.weight.dtype,
+                device=device,
+                cache_position=cache_position,
+                batch_size=batch_size,
+            )
+    '''
+
+    print(replace_device_code(code))

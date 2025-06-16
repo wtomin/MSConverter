@@ -1,4 +1,6 @@
 {
     ".named_children()": ".name_cells().items()",
-    ".parameters()": ".get_parameters()"
+    ".parameters()": ".get_parameters()",
+    "@torch.no_grad()": ""
+
 }
