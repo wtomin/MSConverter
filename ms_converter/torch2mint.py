@@ -111,6 +111,16 @@ def _torch2mint(
     with open(input_, "r") as f:
         content = f.read()
 
+    device_patterns = [
+        r'device\s*=\s*[^,\)]+',
+        r'\.to\(\s*[^\)]+\)',
+        r'cuda\(\s*[^\)]*\)',
+        r'cpu\(\s*[^\)]*\)',
+        r'\.detach\(\s*\)' 
+    ]
+    for pattern in device_patterns:
+        content = re.sub(pattern, '', content)
+
     for u, v in mapping.items():
         if u not in content:
             continue

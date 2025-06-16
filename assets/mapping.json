@@ -24,5 +24,8 @@
     "torch.nn": "mindspore.mint.nn",
     "from torch": "from mindspore",
     "forward": "construct",
-    "import torch\n": "import mindspore as ms\nimport mindspore.mint as mint\n"
+    "import torch\n": "import mindspore as ms\nimport mindspore.mint as mint\n",
+    ".size()": ".shape",
+    ".numpy()": ".asnumpy()",
+    ".item()": ".asnumpy().item()"
 }
