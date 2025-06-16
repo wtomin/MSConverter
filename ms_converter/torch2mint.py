@@ -112,10 +112,8 @@ def _torch2mint(
         content = f.read()
 
     device_patterns = [
-        r',device=\s*[^,\)]+',
-        r', device=\s*[^,\)]+',
-        r'device=\s*[^,\)]+',
-        r'\.to\(device\s*[^\)]+\)',
+        r'\.to\((?:device\s*[^\)]+|[a-zA-Z_][a-zA-Z0-9_]*\.device)\)', # .to(device) or .to(device=...)
+        r',\s*device\s*=\s*[a-zA-Z_][a-zA-Z0-9_]*\.device', # , device=x.device 
         r'cuda\(\s*[^\)]*\)',
         r'cpu\(\s*[^\)]*\)',
         r'\.detach\(\s*\)' 
