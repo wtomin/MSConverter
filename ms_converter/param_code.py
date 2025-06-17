@@ -4,20 +4,8 @@ torch2ms_mapping = {
     ".named_children()": ".name_cells().items()",
     ".parameters()": ".get_parameters()",
     "@torch.no_grad()": "",
-    ".size()": ".shape",
     ".numpy()": ".asnumpy()"
 }
-
-def convert_size_to_shape(code: str) -> str:
-    pattern_with_args = r'(\w+)\.size\s*\(\s*([^)]+)\s*\)'
-    replacement_with_args = r'\1.shape[\2]'
-    code = re.sub(pattern_with_args, replacement_with_args, code)
-    
-    pattern_no_args = r'(\w+)\.size\s*\(\s*\)'
-    replacement_no_args = r'\1.shape'
-    code = re.sub(pattern_no_args, replacement_no_args, code)
-    
-    return code
 
 def convert_init_code(pytorch_code: str) -> str:
     # 1. Handle special initialization with indices (including fill_ with arguments)
@@ -69,8 +57,7 @@ def replace_param_code(code: str) -> str:
     replacement = r'\1.requires_grad = \2'
     code = re.sub(pattern, replacement, code)
     code = convert_init_code(code)
-    code = convert_size_to_shape(code)
-
+    
     for p_name in torch2ms_mapping.keys():
         ms_name = torch2ms_mapping[p_name]
         code = code.replace(p_name, ms_name)
@@ -152,23 +139,6 @@ def _init_weights(self, module):
                 module.weight.data[module.padding_idx].zero_()
 
 
-''',
-        '''
-# 测试 size() 转换
-x = torch.randn(3, 4)
-print(x.size())
-print(x.size(0))
-print(x.size(1))
-print(x.size(-1))
-
-tensor_data = torch.tensor([1, 2, 3])
-batch_size = tensor_data.size(0)
-seq_len = tensor_data.size()
-
-model_output = some_model(input_data)
-output_size = model_output.size()
-first_dim = model_output.size(0)
-second_dim = model_output.size(1)
 ''',
     ]
 

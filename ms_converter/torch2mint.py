@@ -12,6 +12,7 @@ from ms_converter._version import __version__
 from .device_code import replace_device_code
 from .extras import remove_extra_code
 from .param_code import replace_param_code
+from .temp_code import replace_temporary_code
 MINT_API_TABLE = {
     "2.5.0": "mindspore_v2.5.0.mint.rst",
     "2.6.0": "mindspore_v2.6.0.mint.rst"
@@ -103,7 +104,8 @@ def _torch2mint(
     mint_api_path: Optional[str] = None,
     custom_mapping_path: Optional[str] = None,
     inplace: bool = False,
-    extra_conversion: bool = False
+    extra_conversion: bool = False,
+    temp_conversion: bool = False
 ) -> None:
     input_ = os.path.abspath(input_)
     api = scan_mint_api(ms_version=ms_version, mint_api_path=mint_api_path)
@@ -126,6 +128,8 @@ def _torch2mint(
         _logger.debug(f"Update: {u.strip():<40} --> {v.strip():<40}".replace(
             "\n", " "))
 
+    if temp_conversion:
+        content = replace_temporary_code(content)
     if inplace:
         backup = input_ + ".old"
         shutil.move(input_, backup)
@@ -168,6 +172,10 @@ def main():
                         "--extra_conversion",
                         action="store_true",
                         help="run extra conversion with ast parse")
+    parser.add_argument("-t",
+                        "--temp_conversion",
+                        action="store_true",
+                        help="run temporary conversion with fixed rules")
     args = parser.parse_args()
 
     # set logger
@@ -186,7 +194,8 @@ def main():
         mint_api_path=args.mint_api_path,
         custom_mapping_path=args.custom_mapping_path,
         inplace=args.in_place,
-        extra_conversion=args.extra_conversion
+        extra_conversion=args.extra_conversion,
+        temp_conversion=args.temp_conversion,
     )
 
 
