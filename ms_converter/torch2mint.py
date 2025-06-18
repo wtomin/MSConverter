@@ -98,23 +98,31 @@ def expand_torch_mint_mapping(
     return
 
 
-def _torch2mint(
-    input_: str,
+def _process_single_file(
+    input_file: str,
     ms_version: str = "2.5",
     mint_api_path: Optional[str] = None,
     custom_mapping_path: Optional[str] = None,
-    inplace: bool = False,
+    replace: bool = False,
     extra_conversion: bool = False,
     temp_conversion: bool = False
 ) -> None:
-    input_ = os.path.abspath(input_)
+    """Process a single Python file for torch to mint conversion."""
+    # Read the file first to check if it contains torch import
+    with open(input_file, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    # Check if file contains torch import
+    if "import torch" not in content:
+        _logger.debug(f"Skipping {input_file} - no torch import found")
+        return
+
+    _logger.info(f"Converting {input_file}")
+    input_file = os.path.abspath(input_file)
     api = scan_mint_api(ms_version=ms_version, mint_api_path=mint_api_path)
     mapping = form_base_torch_mint_mapping(api)
     expand_torch_mint_mapping(mapping, custom_mapping_path=custom_mapping_path)
 
-    _logger.debug("Reading input from %s", input_)
-    with open(input_, "r", encoding="utf-8") as f:
-        content = f.read()
     content = replace_device_code(content)
     content = replace_param_code(content)
     if extra_conversion:
@@ -130,30 +138,75 @@ def _torch2mint(
 
     if temp_conversion:
         content = replace_temporary_code(content)
-    if inplace:
-        backup = input_ + ".old"
-        shutil.move(input_, backup)
-        with open(input_, "w") as f:
+    if replace:
+        backup = input_file + ".old"
+        shutil.move(input_file, backup)
+        with open(input_file, "w") as f:
             f.write(content)
         _logger.debug(
-            "Inplace modification is finished. Old file is saved as %s",
+            "Replacement is finished. Old file is saved as %s",
             backup)
     else:
+        print(f"\n=== Converted content for {input_file} ===")
         print(content)
+        print("=" * 80)
+
+
+def _torch2mint(
+    input_: str,
+    ms_version: str = "2.5",
+    mint_api_path: Optional[str] = None,
+    custom_mapping_path: Optional[str] = None,
+    replace: bool = False,
+    extra_conversion: bool = False,
+    temp_conversion: bool = False
+) -> None:
+    input_ = os.path.abspath(input_)
+    
+    if os.path.isfile(input_):
+        _process_single_file(
+            input_,
+            ms_version=ms_version,
+            mint_api_path=mint_api_path,
+            custom_mapping_path=custom_mapping_path,
+            replace=replace,
+            extra_conversion=extra_conversion,
+            temp_conversion=temp_conversion
+        )
+    elif os.path.isdir(input_):
+        _logger.info(f"Processing directory: {input_}")
+        for root, _, files in os.walk(input_):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    try:
+                        _process_single_file(
+                            file_path,
+                            ms_version=ms_version,
+                            mint_api_path=mint_api_path,
+                            custom_mapping_path=custom_mapping_path,
+                            replace=replace,
+                            extra_conversion=extra_conversion,
+                            temp_conversion=temp_conversion
+                        )
+                    except Exception as e:
+                        _logger.error(f"Error processing {file_path}: {str(e)}")
+    else:
+        raise ValueError(f"Input path {input_} is neither a file nor a directory")
 
 
 def main():
     parser = argparse.ArgumentParser(
         usage=
-        "Convert script from using PyTorch API to MindSpore API (mint API) partially.",
+        "Convert script(s) from using PyTorch API to MindSpore API (mint API) partially.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v',
                         '--version',
                         action='version',
                         version=f'%(prog)s {__version__}')
-    parser.add_argument("input", help="Path of the script to be converted.")
     parser.add_argument("-i",
-                        "--in-place",
+                        "--input", help="Path of the script or directory to be converted.")
+    parser.add_argument("--replace",
                         action="store_true",
                         help="make the update to files in place")
     parser.add_argument("--mint-api-path", help="Path to the Mint API list")
@@ -193,7 +246,7 @@ def main():
         ms_version=args.ms_version,
         mint_api_path=args.mint_api_path,
         custom_mapping_path=args.custom_mapping_path,
-        inplace=args.in_place,
+        replace=args.replace,
         extra_conversion=args.extra_conversion,
         temp_conversion=args.temp_conversion,
     )
