@@ -113,7 +113,7 @@ def _torch2mint(
     expand_torch_mint_mapping(mapping, custom_mapping_path=custom_mapping_path)
 
     _logger.debug("Reading input from %s", input_)
-    with open(input_, "r") as f:
+    with open(input_, "r", encoding="utf-8") as f:
         content = f.read()
     content = replace_device_code(content)
     content = replace_param_code(content)
